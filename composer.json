@@ -1,0 +1,25 @@
+{
+    "name": "asyntai/kirby-ai-chatbot",
+    "description": "Asyntai AI Chatbot - Create and launch AI assistant/chatbot for your Kirby website in minutes",
+    "homepage": "https://asyntai.com",
+    "version": "1.0.0",
+    "type": "kirby-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Asyntai",
+            "email": "hello@asyntai.com",
+            "homepage": "https://asyntai.com"
+        }
+    ],
+    "support": {
+        "docs": "https://asyntai.com/kirby-plugin-documentation",
+        "source": "https://github.com/asyntai/kirby-asyntai-ai-chatbot",
+        "issues": "https://github.com/asyntai/kirby-asyntai-ai-chatbot/issues",
+        "email": "hello@asyntai.com"
+    },
+    "require": {
+        "getkirby/composer-installer": "^1.2"
+    }
+}
+
