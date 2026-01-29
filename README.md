@@ -23,6 +23,8 @@ This plugin embeds the Asyntai chatbot on your Kirby site and provides a simple 
 2. Log in to your Kirby Panel
 3. Navigate to "Asyntai AI Chatbot" in the Panel sidebar
 
+**Note: Alternatively, if you don't want to use a plugin, you can also get a JavaScript snippet at [Asyntai.com/dashboard](https://asyntai.com/dashboard) and manually insert it into your web pages.**
+
 ## Configuration
 
 After installation:
@@ -59,3 +61,4 @@ Email us at hello@asyntai.com or try our chatbot directly at [asyntai.com/](http
 ![Asyntai AI chatbot 3](https://asyntai.com/static/images/ai-chatbot-for-websites-3.png)
 ![Asyntai AI chatbot 4](https://asyntai.com/static/images/ai-chatbot-for-websites-4.png)
 ![Asyntai AI chatbot 5](https://asyntai.com/static/images/ai-chatbot-for-websites-5.png)
+
