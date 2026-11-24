@@ -55,6 +55,34 @@ if (!function_exists('asyntai_write_config')) {
     }
 }
 
+// Helper: settings changes need a signed-in Panel admin and the Panel's CSRF token
+if (!function_exists('asyntai_guard_request')) {
+    function asyntai_guard_request(): ?Response
+    {
+        $user = kirby()->user();
+        if (!$user || !$user->isAdmin()) {
+            return new Response(json_encode(['success' => false, 'error' => 'forbidden']), 'application/json', 403);
+        }
+        $token = (string)kirby()->request()->header('X-CSRF');
+        if ($token === '' || csrf($token) !== true) {
+            return new Response(json_encode(['success' => false, 'error' => 'Your session has expired. Reload the page and try again.']), 'application/json', 403);
+        }
+        return null;
+    }
+}
+
+// Helper: only the Asyntai widget script may be loaded on the site
+if (!function_exists('asyntai_clean_script_url')) {
+    function asyntai_clean_script_url(string $url): string
+    {
+        $url = trim($url);
+        if (preg_match('#^https://asyntai\.com/[A-Za-z0-9/._-]+\.js$#', $url)) {
+            return $url;
+        }
+        return 'https://asyntai.com/static/js/chat-widget.js';
+    }
+}
+
 Kirby::plugin('asyntai/ai-chatbot', [
     'options' => [
         'enabled' => true,
@@ -80,9 +108,7 @@ Kirby::plugin('asyntai/ai-chatbot', [
             if ($siteId === '') {
                 return $html;
             }
-            $scriptUrl = isset($cfg['script_url']) && trim((string)$cfg['script_url']) !== ''
-                ? trim((string)$cfg['script_url'])
-                : 'https://asyntai.com/static/js/chat-widget.js';
+            $scriptUrl = asyntai_clean_script_url(isset($cfg['script_url']) ? (string)$cfg['script_url'] : '');
 
             $injection = '<script type="text/javascript">(function(){var s=document.createElement("script");s.async=true;s.defer=true;s.src=' .
                 json_encode($scriptUrl) . ';s.setAttribute("data-asyntai-id",' . json_encode($siteId) . ');s.charset="UTF-8";var f=document.getElementsByTagName("script")[0];if(f&&f.parentNode){f.parentNode.insertBefore(s,f);}else{(document.head||document.documentElement).appendChild(s);}})();</script>';
@@ -100,9 +126,8 @@ Kirby::plugin('asyntai/ai-chatbot', [
             'pattern' => 'asyntai-save',
             'method' => 'POST',
             'action'  => function () {
-                $user = kirby()->user();
-                if (!$user) {
-                    return new Response(json_encode(['success' => false, 'error' => 'forbidden']), 'application/json', 403);
+                if ($denied = asyntai_guard_request()) {
+                    return $denied;
                 }
 
                 $raw = file_get_contents('php://input') ?: '';
@@ -112,7 +137,7 @@ Kirby::plugin('asyntai/ai-chatbot', [
                 }
 
                 $siteId = isset($payload['site_id']) ? trim((string)$payload['site_id']) : '';
-                if ($siteId === '') {
+                if (!preg_match('/^[A-Za-z0-9_-]{6,64}$/', $siteId)) {
                     return new Response(json_encode(['success' => false, 'error' => 'missing site_id']), 'application/json', 400);
                 }
 
@@ -120,10 +145,10 @@ Kirby::plugin('asyntai/ai-chatbot', [
                     'site_id' => $siteId,
                 ];
                 if (!empty($payload['script_url'])) {
-                    $data['script_url'] = trim((string)$payload['script_url']);
+                    $data['script_url'] = asyntai_clean_script_url((string)$payload['script_url']);
                 }
                 if (!empty($payload['account_email'])) {
-                    $data['account_email'] = trim((string)$payload['account_email']);
+                    $data['account_email'] = substr(trim((string)$payload['account_email']), 0, 255);
                 }
 
                 asyntai_write_config($data);
@@ -134,9 +159,8 @@ Kirby::plugin('asyntai/ai-chatbot', [
             'pattern' => 'asyntai-reset',
             'method' => 'POST',
             'action'  => function () {
-                $user = kirby()->user();
-                if (!$user) {
-                    return new Response(json_encode(['success' => false, 'error' => 'forbidden']), 'application/json', 403);
+                if ($denied = asyntai_guard_request()) {
+                    return $denied;
                 }
                 asyntai_write_config([
                     'site_id' => '',
@@ -184,6 +208,7 @@ Kirby::plugin('asyntai/ai-chatbot', [
                                     'saveUrl' => $saveUrl,
                                     'resetUrl' => $resetUrl,
                                     'expectedOrigin' => $expectedOrigin,
+                                    'csrf' => csrf(),
                                 ],
                             ];
                         },

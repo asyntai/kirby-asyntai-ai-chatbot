@@ -10,7 +10,8 @@ panel.plugin("asyntai/ai-chatbot", {
         connectUrl: String,
         saveUrl: String,
         resetUrl: String,
-        expectedOrigin: String
+        expectedOrigin: String,
+        csrf: String
       },
       template: `
         <k-panel-inside>
@@ -114,9 +115,10 @@ panel.plugin("asyntai/ai-chatbot", {
           }, 1000);
         },
         pollForConnection(state) {
-          let attempts = 0;
+          // Signing up can take a few minutes, so keep waiting for 10 minutes.
+          const until = Date.now() + 10 * 60 * 1000;
           const check = () => {
-            if (attempts++ > 60) return;
+            if (Date.now() > until) return;
             const script = document.createElement('script');
             const cb = 'asyntai_cb_' + Date.now();
             script.src = this.expectedOrigin + '/connect-status.js?state=' + encodeURIComponent(state) + '&cb=' + cb;
@@ -150,7 +152,8 @@ panel.plugin("asyntai/ai-chatbot", {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest'
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF': this.csrf || ''
             },
             credentials: 'same-origin',
             body: JSON.stringify(payload)
@@ -178,7 +181,8 @@ panel.plugin("asyntai/ai-chatbot", {
           fetch(this.resetUrl, {
             method: 'POST',
             headers: {
-              'X-Requested-With': 'XMLHttpRequest'
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF': this.csrf || ''
             },
             credentials: 'same-origin'
           })

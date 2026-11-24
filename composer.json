@@ -2,7 +2,7 @@
     "name": "asyntai/kirby-ai-chatbot",
     "description": "Asyntai AI Chatbot - Create and launch AI assistant/chatbot for your Kirby website in minutes",
     "homepage": "https://asyntai.com",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "kirby-plugin",
     "license": "MIT",
     "authors": [
